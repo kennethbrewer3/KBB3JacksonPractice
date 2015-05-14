@@ -14,10 +14,14 @@ import android.widget.ListView;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -30,6 +34,8 @@ public class MainActivity extends Activity {
     private List<Post> posts;
     private PostArrayAdapter postArrayAdapter;
     private Context context;
+
+    private static final String SCREEN_NAME = "MainListViewScreen";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +52,14 @@ public class MainActivity extends Activity {
         postListView = (ListView)findViewById(R.id.postListView);
 
 
+// Get tracker.
+        Tracker t = (getTracker(TrackerName.APP_TRACKER));
 
+// Set screen name.
+        t.setScreenName(SCREEN_NAME);
+
+// Send a screen view.
+        t.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -88,5 +101,23 @@ public class MainActivity extends Activity {
                 }
             }
         };
+    }
+
+    public enum TrackerName {
+        APP_TRACKER // Tracker used only in this app.
+    }
+
+    HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
+
+    synchronized Tracker getTracker(TrackerName trackerId) {
+        if (!mTrackers.containsKey(trackerId)) {
+
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            Tracker t = analytics.newTracker(R.xml.tracker);
+
+            mTrackers.put(trackerId, t);
+
+        }
+        return mTrackers.get(trackerId);
     }
 }
